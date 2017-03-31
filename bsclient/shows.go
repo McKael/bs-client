@@ -153,14 +153,20 @@ type characters struct {
 }
 
 // ShowsCharacters returns a slice of characters found with the given ID.
-func (bs *BetaSeries) ShowsCharacters(id int) ([]Character, error) {
+func (bs *BetaSeries) ShowsCharacters(id, theTvdbID int) ([]Character, error) {
 	usedAPI := "/shows/characters"
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	q.Set("id", strconv.Itoa(id))
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
+	} else if theTvdbID > 0 {
+		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
+	} else {
+		return nil, errIDNotProperlySet
+	}
 	u.RawQuery = q.Encode()
 
 	resp, err := bs.do("GET", u)
@@ -212,14 +218,20 @@ func (bs *BetaSeries) ShowsList(since, starting string, start, limit int) ([]Sho
 	return bs.doGetShows(u, usedAPI)
 }
 
-func (bs *BetaSeries) showUpdate(method, endoint string, id int) (*Show, error) {
+func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int) (*Show, error) {
 	usedAPI := "/shows/" + endoint
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	q.Set("id", strconv.Itoa(id))
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
+	} else if theTvdbID > 0 {
+		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
+	} else {
+		return nil, errIDNotProperlySet
+	}
 	u.RawQuery = q.Encode()
 
 	resp, err := bs.do(method, u)
@@ -238,28 +250,28 @@ func (bs *BetaSeries) showUpdate(method, endoint string, id int) (*Show, error) 
 }
 
 // ShowDisplay returns the show information represented by the given 'id' from the user's account.
-func (bs *BetaSeries) ShowDisplay(id int) (*Show, error) {
-	return bs.showUpdate("GET", "display", id)
+func (bs *BetaSeries) ShowDisplay(id, theTvdbID int) (*Show, error) {
+	return bs.showUpdate("GET", "display", id, theTvdbID)
 }
 
 // ShowAdd adds the show represented by the given 'id' to the user's account.
-func (bs *BetaSeries) ShowAdd(id int) (*Show, error) {
-	return bs.showUpdate("POST", "show", id)
+func (bs *BetaSeries) ShowAdd(id, theTvdbID int) (*Show, error) {
+	return bs.showUpdate("POST", "show", id, theTvdbID)
 }
 
 // ShowRemove removes the show represented by the given 'id' from user's account.
-func (bs *BetaSeries) ShowRemove(id int) (*Show, error) {
-	return bs.showUpdate("DELETE", "show", id)
+func (bs *BetaSeries) ShowRemove(id, theTvdbID int) (*Show, error) {
+	return bs.showUpdate("DELETE", "show", id, theTvdbID)
 }
 
 // ShowArchive archives the show represented by the given 'id' from user's account
-func (bs *BetaSeries) ShowArchive(id int) (*Show, error) {
-	return bs.showUpdate("POST", "archive", id)
+func (bs *BetaSeries) ShowArchive(id, theTvdbID int) (*Show, error) {
+	return bs.showUpdate("POST", "archive", id, theTvdbID)
 }
 
 // ShowNotArchive removes from archives the show represented by the given 'id' from user's account
-func (bs *BetaSeries) ShowNotArchive(id int) (*Show, error) {
-	return bs.showUpdate("DELETE", "archive", id)
+func (bs *BetaSeries) ShowNotArchive(id, theTvdbID int) (*Show, error) {
+	return bs.showUpdate("DELETE", "archive", id, theTvdbID)
 }
 
 // Video represents the video data returned by the betaserie API
@@ -320,16 +332,22 @@ func (bs *BetaSeries) ShowsVideos(id, tvdbID int) ([]Video, error) {
 	return data.Videos, nil
 }
 
-// ShowsEpisodes returns a slice of episode for the show represented by the given 'id'.
+// ShowsEpisodes returns a slice of episode for the show represented by the given id.
 // Optional 'season' and 'episode' parameters can be used for precision.
-func (bs *BetaSeries) ShowsEpisodes(id, season, episode int, subtitles bool) ([]Episode, error) {
+func (bs *BetaSeries) ShowsEpisodes(id, theTvdbID, season, episode int, subtitles bool) ([]Episode, error) {
 	usedAPI := "/shows/episodes"
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	q.Set("id", strconv.Itoa(id))
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
+	} else if theTvdbID > 0 {
+		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
+	} else {
+		return nil, errIDNotProperlySet
+	}
 	q.Set("season", strconv.Itoa(season))
 	q.Set("episode", strconv.Itoa(episode))
 	if subtitles {
