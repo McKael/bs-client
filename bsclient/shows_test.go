@@ -61,11 +61,11 @@ func (s *MySuite) TestShowsCharacters(c *C) {
 	shows, err := bs.ShowsSearch(tvShowTest)
 	c.Assert(err, IsNil)
 	c.Assert(len(shows), Equals, 1)
-	characters, err := bs.ShowsCharacters(shows[0].ID)
+	characters, err := bs.ShowsCharacters(shows[0].ID, 0)
 	c.Assert(err, IsNil)
 	c.Assert(len(characters), Equals, 19)
 
-	_, err = bs.ShowsCharacters(123456789)
+	_, err = bs.ShowsCharacters(123456789, 0)
 	c.Assert(err, NotNil)
 	c.Assert(err, DeepEquals, &errAPI{
 		[]errorsAPI{err4001},
@@ -109,7 +109,12 @@ func (s *MySuite) TestShowsList(c *C) {
 func (s *MySuite) TestShowsUpdate(c *C) {
 	key := os.Getenv("BS_API_KEY")
 	bs, err := NewBetaseriesClient(key, "Dev050", "developer")
-	show, err := bs.ShowAdd(0)
+	show, err := bs.ShowAdd(0, 0)
+	c.Assert(err, NotNil)
+	c.Assert(err, Equals, errIDNotProperlySet)
+
+	bs, err = NewBetaseriesClient(key, "Dev050", "developer")
+	show, err = bs.ShowAdd(1234567890, 0)
 	c.Assert(err, NotNil)
 	c.Assert(err, DeepEquals, &errAPI{
 		[]errorsAPI{err4001},
@@ -117,22 +122,22 @@ func (s *MySuite) TestShowsUpdate(c *C) {
 
 	bs, _, id := makeClientAndAddShow(c)
 
-	show, err = bs.ShowArchive(id)
+	show, err = bs.ShowArchive(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, true)
 	c.Assert(show.User.Archived, Equals, true)
 
-	show, err = bs.ShowNotArchive(id)
+	show, err = bs.ShowNotArchive(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, true)
 	c.Assert(show.User.Archived, Equals, false)
 
-	show, err = bs.ShowDisplay(id)
+	show, err = bs.ShowDisplay(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, true)
 	c.Assert(show.Status, Equals, "Ended")
 
-	show, err = bs.ShowRemove(id)
+	show, err = bs.ShowRemove(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, false)
 }
@@ -172,19 +177,19 @@ func (s *MySuite) TestShowsEpisodes(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(shows, HasLen, 1)
 
-	episodes, err := bs.ShowsEpisodes(shows[0].ID, 0, 0)
+	episodes, err := bs.ShowsEpisodes(shows[0].ID, 0, 0, 0, false)
 	c.Assert(err, IsNil)
 	c.Assert(episodes, HasLen, 68)
 
-	episodes, err = bs.ShowsEpisodes(shows[0].ID, 1, 0)
+	episodes, err = bs.ShowsEpisodes(shows[0].ID, 0, 1, 0, false)
 	c.Assert(err, IsNil)
 	c.Assert(episodes, HasLen, 12)
 
-	episodes, err = bs.ShowsEpisodes(shows[0].ID, 1, 1)
+	episodes, err = bs.ShowsEpisodes(shows[0].ID, 0, 1, 1, false)
 	c.Assert(err, IsNil)
 	c.Assert(episodes, HasLen, 1)
 
-	episodes, err = bs.ShowsEpisodes(shows[0].ID, -1, -1)
+	episodes, err = bs.ShowsEpisodes(shows[0].ID, 0, -1, -1, false)
 	c.Assert(err, IsNil)
 	c.Assert(episodes, HasLen, 68)
 }

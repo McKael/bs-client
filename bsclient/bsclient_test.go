@@ -71,9 +71,9 @@ func makeClientAndAddShow(c *C) (*BetaSeries, string, int) {
 	c.Assert(len(shows), Equals, 1)
 
 	// make sure the tv show is not in the user account first
-	bs.ShowRemove(shows[0].ID)
+	bs.ShowRemove(shows[0].ID, 0)
 
-	show, err := bs.ShowAdd(shows[0].ID)
+	show, err := bs.ShowAdd(shows[0].ID, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, true)
 	return bs, key, shows[0].ID

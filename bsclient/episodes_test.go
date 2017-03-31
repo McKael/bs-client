@@ -17,7 +17,7 @@ func (s *MySuite) TestEpisodesList(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(shows, HasLen, 1)
 
-	show, err := bs.ShowRemove(id)
+	show, err := bs.ShowRemove(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, false)
 
@@ -49,7 +49,7 @@ func (s *MySuite) TestEpisodesDownloaded(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(episode.User.Downloaded, Equals, false)
 
-	show, err := bs.ShowRemove(id)
+	show, err := bs.ShowRemove(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, false)
 }
@@ -57,6 +57,7 @@ func (s *MySuite) TestEpisodesDownloaded(c *C) {
 func (s *MySuite) TestEpisodesWatched(c *C) {
 	bs, _, id := makeClientAndAddShow(c)
 	shows, err := bs.EpisodesList(id, -1)
+	println("unseen:", len(shows[0].Unseen))
 	c.Assert(err, IsNil)
 	c.Assert(shows, HasLen, 1)
 	c.Assert(shows[0].Unseen, HasLen, 62)
@@ -69,7 +70,7 @@ func (s *MySuite) TestEpisodesWatched(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(episode.User.Seen, Equals, false)
 
-	show, err := bs.ShowRemove(id)
+	show, err := bs.ShowRemove(id, 0)
 	c.Assert(err, IsNil)
 	c.Assert(show.InAccount, Equals, false)
 }
