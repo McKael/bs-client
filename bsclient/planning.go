@@ -37,8 +37,8 @@ type Episode struct {
 		Seen       bool `json:"seen"`
 		Downloaded bool `json:"downloaded"`
 	} `json:"user"`
-	Comments  string        `json:"comments"`
-	Subtitles []interface{} `json:"subtitles"`
+	Comments  string     `json:"comments"`
+	Subtitles []Subtitle `json:"subtitles"`
 }
 
 type episodes struct {
