@@ -83,6 +83,32 @@ func (bs *BetaSeries) episodeUpdate(method, endpoint string, id, theTvdbID int) 
 	return episode.Episode, nil
 }
 
+// EpisodeScraper returns an episode from a file name
+func (bs *BetaSeries) EpisodeScraper(fileName string) (*Episode, error) {
+	usedAPI := "/episodes/scraper"
+	u, err := url.Parse(bs.baseURL + usedAPI)
+	if err != nil {
+		return nil, errURLParsing
+	}
+	q := u.Query()
+	q.Set("file", fileName)
+	u.RawQuery = q.Encode()
+
+	resp, err := bs.do("GET", u)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	episode := &episodeItem{}
+	err = bs.decode(episode, resp, usedAPI, u.RawQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	return episode.Episode, nil
+}
+
 // EpisodeLatest returns the latest episode for a given show
 func (bs *BetaSeries) EpisodeLatest(showID, theTvdbShowID int) (*Episode, error) {
 	return bs.episodeGet("latest", showID, theTvdbShowID, false, "")
