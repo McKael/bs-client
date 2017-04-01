@@ -356,3 +356,42 @@ func (bs *BetaSeries) ShowsEpisodes(id, theTvdbID, season, episode int, subtitle
 	u.RawQuery = q.Encode()
 	return bs.doGetEpisodes(u, usedAPI)
 }
+
+// EpisodesList returns a slice of unseen episodes ordered by shows
+func (bs *BetaSeries) EpisodesList(showID, theTvdbID int, imdbID string,
+	userID, limit, released int, subtitles, specials bool) ([]Show, error) {
+
+	usedAPI := "/episodes/list"
+	u, err := url.Parse(bs.baseURL + usedAPI)
+	if err != nil {
+		return nil, errURLParsing
+	}
+	q := u.Query()
+	if specials {
+		q.Set("specials", "true")
+	}
+	if subtitles {
+		q.Set("subtitles", "true")
+	}
+	if released >= 0 {
+		q.Set("released", strconv.Itoa(released))
+	}
+	if showID > 0 {
+		q.Set("showId", strconv.Itoa(showID))
+	}
+	if theTvdbID > 0 {
+		q.Set("showTheTVDBId", strconv.Itoa(theTvdbID))
+	}
+	if imdbID != "" {
+		q.Set("showIMDBId", imdbID)
+	}
+	if limit > 0 {
+		q.Set("limit", strconv.Itoa(limit))
+	}
+	if userID > 0 {
+		q.Set("userId", strconv.Itoa(userID))
+	}
+	u.RawQuery = q.Encode()
+
+	return bs.doGetShows(u, usedAPI)
+}

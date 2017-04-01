@@ -10,26 +10,6 @@ type episodeItem struct {
 	Errors  []interface{} `json:"errors"`
 }
 
-// EpisodesList returns a slice of unseen episodes ordered by shows.
-func (bs *BetaSeries) EpisodesList(showID, userID int) ([]Show, error) {
-	usedAPI := "/episodes/list"
-	u, err := url.Parse(bs.baseURL + usedAPI)
-	if err != nil {
-		return nil, errURLParsing
-	}
-	q := u.Query()
-	q.Set("specials", "true")
-	if showID >= 0 {
-		q.Set("showId", strconv.Itoa(showID))
-	}
-	if userID >= 0 {
-		q.Set("userId", strconv.Itoa(userID))
-	}
-	u.RawQuery = q.Encode()
-
-	return bs.doGetShows(u, usedAPI)
-}
-
 // episodeGet returns an episode
 // Note: scraper and list cannot be requested with this method
 func (bs *BetaSeries) episodeGet(endPoint string, id, theTvdbID int,
