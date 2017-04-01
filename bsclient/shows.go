@@ -191,16 +191,22 @@ func (bs *BetaSeries) ShowsCharacters(id, theTvdbID int) ([]Character, error) {
 // ShowsList returns a slice of shows from an interval. It can return every shows if wanted.
 // 'since' : only displays shows from a specified data (timestamp UNIX - optional)
 // 'starting' : only displays shows beginning with the specified string (optional)
+// 'order': sort order of the result (alphabetical, popularity or followers)
 // 'start' : show id number to begin the listing with (default 0, optional)
 // 'limit' : maximum size of the returned slice (default to everything, optional)
-func (bs *BetaSeries) ShowsList(since, starting string, start, limit int) ([]Show, error) {
+func (bs *BetaSeries) ShowsList(since, starting, order string, start, limit int) ([]Show, error) {
 	usedAPI := "/shows/list"
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	q.Set("order", "popularity")
+	switch order {
+	case "alphabetical", "popularity", "followers":
+		q.Set("order", order)
+	default:
+		q.Set("order", "popularity")
+	}
 	if len(since) != 0 {
 		q.Set("since", since)
 	}
