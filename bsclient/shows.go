@@ -102,7 +102,7 @@ func (bs *BetaSeries) doGetShows(u *url.URL, usedAPI string) ([]Show, error) {
 
 // ShowsSearch returns a slice of shows found with the given query
 // The slice is of size 100 maximum and the results are ordered by popularity by default.
-func (bs *BetaSeries) ShowsSearch(query string) ([]Show, error) {
+func (bs *BetaSeries) ShowsSearch(query, order string, summary bool) ([]Show, error) {
 	usedAPI := "/shows/search"
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
@@ -110,8 +110,16 @@ func (bs *BetaSeries) ShowsSearch(query string) ([]Show, error) {
 	}
 	q := u.Query()
 	q.Set("title", strings.ToLower(query))
-	q.Set("order", "popularity")
 	q.Set("nbpp", "100")
+	switch order {
+	case "title", "popularity", "followers":
+		q.Set("order", order)
+	default:
+		q.Set("order", "popularity")
+	}
+	if summary {
+		q.Set("summary", "true")
+	}
 	u.RawQuery = q.Encode()
 
 	return bs.doGetShows(u, usedAPI)
