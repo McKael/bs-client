@@ -145,6 +145,23 @@ func (bs *BetaSeries) ShowsRandom(num int, summary bool) ([]Show, error) {
 	return bs.doGetShows(u, usedAPI)
 }
 
+// ShowsFavorites returns a slice of favorite shows.
+// A user ID can be provided.
+func (bs *BetaSeries) ShowsFavorites(userID int) ([]Show, error) {
+	usedAPI := "/shows/favorites"
+	u, err := url.Parse(bs.baseURL + usedAPI)
+	if err != nil {
+		return nil, errURLParsing
+	}
+	q := u.Query()
+	if userID > 0 {
+		q.Set("id", strconv.Itoa(userID))
+	}
+	u.RawQuery = q.Encode()
+
+	return bs.doGetShows(u, usedAPI)
+}
+
 // Character represents the character data returned by the betaserie API.
 type Character struct {
 	ID          int    `json:"id"`
