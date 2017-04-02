@@ -232,7 +232,7 @@ func (bs *BetaSeries) ShowsList(since, starting, order string, start, limit int)
 	return bs.doGetShows(u, usedAPI)
 }
 
-func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int) (*Show, error) {
+func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int, imdbID string) (*Show, error) {
 	usedAPI := "/shows/" + endoint
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
@@ -243,6 +243,8 @@ func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int) (*Sh
 		q.Set("id", strconv.Itoa(id))
 	} else if theTvdbID > 0 {
 		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
+	} else if imdbID != "" {
+		q.Set("imdb_id", imdbID)
 	} else {
 		return nil, errIDNotProperlySet
 	}
@@ -264,28 +266,28 @@ func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int) (*Sh
 }
 
 // ShowDisplay returns the show information represented by the given 'id' from the user's account.
-func (bs *BetaSeries) ShowDisplay(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("GET", "display", id, theTvdbID)
+func (bs *BetaSeries) ShowDisplay(id, theTvdbID int, imdbID string) (*Show, error) {
+	return bs.showUpdate("GET", "display", id, theTvdbID, imdbID)
 }
 
 // ShowAdd adds the show represented by the given 'id' to the user's account.
 func (bs *BetaSeries) ShowAdd(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("POST", "show", id, theTvdbID)
+	return bs.showUpdate("POST", "show", id, theTvdbID, "")
 }
 
 // ShowRemove removes the show represented by the given 'id' from user's account.
 func (bs *BetaSeries) ShowRemove(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("DELETE", "show", id, theTvdbID)
+	return bs.showUpdate("DELETE", "show", id, theTvdbID, "")
 }
 
 // ShowArchive archives the show represented by the given 'id' from user's account
 func (bs *BetaSeries) ShowArchive(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("POST", "archive", id, theTvdbID)
+	return bs.showUpdate("POST", "archive", id, theTvdbID, "")
 }
 
 // ShowNotArchive removes from archives the show represented by the given 'id' from user's account
 func (bs *BetaSeries) ShowNotArchive(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("DELETE", "archive", id, theTvdbID)
+	return bs.showUpdate("DELETE", "archive", id, theTvdbID, "")
 }
 
 // Video represents the video data returned by the betaserie API
