@@ -67,8 +67,9 @@ func (bs *BetaSeries) doGetEpisodes(u *url.URL, usedAPI string) ([]Episode, erro
 }
 
 // PlanningGeneral returns a slice of episodes found in [date-before, date+after] timeline.
-// Note: the 'date' input must be in YYYY-MM-JJ format
-func (bs *BetaSeries) PlanningGeneral(date string, before, after int) ([]Episode, error) {
+// Note: the 'date' input must be in YYYY-MM-JJ format or 'now'
+// 'eType', the episode type, can be 'premiere' or 'all', or empty.
+func (bs *BetaSeries) PlanningGeneral(date, eType string, before, after int) ([]Episode, error) {
 	usedAPI := "/planning/general"
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
@@ -78,6 +79,9 @@ func (bs *BetaSeries) PlanningGeneral(date string, before, after int) ([]Episode
 	q.Set("date", date)
 	q.Set("before", strconv.Itoa(before))
 	q.Set("after", strconv.Itoa(after))
+	if eType != "" {
+		q.Set("type", eType)
+	}
 	u.RawQuery = q.Encode()
 	return bs.doGetEpisodes(u, usedAPI)
 }
