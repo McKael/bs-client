@@ -98,9 +98,8 @@ func (bs *BetaSeries) PlanningIncoming() ([]Episode, error) {
 }
 
 // PlanningMember returns a slice of episodes of the member 'id'.
-// If 'id' is not set to a proper member it returns an error.
-// If 'id' is strictly negative, the returned episodes
-// are the ones of the identified member doing the request.
+// If 'id' is 0 or negative, the returned episodes are the ones of the
+// identified member doing the request.
 // The parameter 'unseen' filters not seen episodes.
 // The parameter 'month' filters episodes of the given month with the format YYYY-MM.
 // Note: the 'month' value can be the string "now".
@@ -111,11 +110,15 @@ func (bs *BetaSeries) PlanningMember(id int, unseen bool, month string) ([]Episo
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	if id >= 0 {
+	if id > 0 {
 		q.Set("id", strconv.Itoa(id))
 	}
-	q.Set("unseen", strconv.FormatBool(unseen))
-	q.Set("month", month)
+	if unseen {
+		q.Set("unseen", "true")
+	}
+	if month != "" {
+		q.Set("month", month)
+	}
 	u.RawQuery = q.Encode()
 	return bs.doGetEpisodes(u, usedAPI)
 }
