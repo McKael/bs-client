@@ -80,6 +80,24 @@ type showItem struct {
 	Errors []interface{} `json:"errors"`
 }
 
+// Similar represents a data structure returned by the shows/similars BetaSeries API
+type Similar struct {
+	// used in shows/similars
+	ID        int    `json:"id"`
+	Login     string `json:"login"`
+	LoginID   int    `json:"login_id"`
+	Notes     string `json:"notes"`
+	ShowTitle string `json:"show_title"`
+	ShowID    int    `json:"show_id"`
+	ThetvdbID int    `json:"thetvdb_id"`
+	Show      `json:"show"`
+}
+
+type similars struct {
+	Similars []Similar     `json:"similars"`
+	Errors   []interface{} `json:"errors"`
+}
+
 func (bs *BetaSeries) doGetShows(u *url.URL, usedAPI string) ([]Show, error) {
 	resp, err := bs.do("GET", u)
 	if err != nil {
@@ -98,6 +116,26 @@ func (bs *BetaSeries) doGetShows(u *url.URL, usedAPI string) ([]Show, error) {
 	}
 
 	return data.Shows, nil
+}
+
+func (bs *BetaSeries) doGetSimilars(u *url.URL) ([]Similar, error) {
+	resp, err := bs.do("GET", u)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data := &similars{}
+	err = bs.decode(data, resp, "", u.RawQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(data.Similars) < 1 {
+		return nil, errNoShowsFound
+	}
+
+	return data.Similars, nil
 }
 
 // ShowsSearch returns a slice of shows found with the given query
@@ -160,6 +198,29 @@ func (bs *BetaSeries) ShowsFavorites(userID int) ([]Show, error) {
 	u.RawQuery = q.Encode()
 
 	return bs.doGetShows(u, usedAPI)
+}
+
+// ShowsSimilars returns a slice of shows similar to a given show
+func (bs *BetaSeries) ShowsSimilars(id, theTvdbID int, details bool) ([]Similar, error) {
+	usedAPI := "/shows/similars"
+	u, err := url.Parse(bs.baseURL + usedAPI)
+	if err != nil {
+		return nil, errURLParsing
+	}
+	q := u.Query()
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
+	} else if theTvdbID > 0 {
+		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
+	} else {
+		return nil, errIDNotProperlySet
+	}
+	if details {
+		q.Set("details", "true")
+	}
+	u.RawQuery = q.Encode()
+
+	return bs.doGetSimilars(u)
 }
 
 // Character represents the character data returned by the betaserie API.
