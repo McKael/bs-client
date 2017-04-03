@@ -83,7 +83,7 @@ func NewBetaseriesClient(key, login, password string) (*BetaSeries, error) {
 		baseURL: bsBaseURL,
 		key:     key,
 		httpClient: &http.Client{
-			Timeout:   time.Second * 10,
+			Timeout:   time.Second * 45,
 			Transport: netTransport,
 		},
 	}
