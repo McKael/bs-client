@@ -144,6 +144,40 @@ func (bs *BetaSeries) episodeUpdate(method, endpoint string, id, theTvdbID int) 
 	return episode.Episode, nil
 }
 
+func (bs *BetaSeries) episodeUpdateWatched(id, theTvdbID, note int, bulk, delete bool) (*Episode, error) {
+	method := "POST"
+	usedAPI := "/episodes/watched"
+	u, err := url.Parse(bs.baseURL + usedAPI)
+	if err != nil {
+		return nil, errURLParsing
+	}
+	q := u.Query()
+	q.Set("id", strconv.Itoa(id))
+	// Note: bulk not optional here since it defaults to true upstream
+	q.Set("bulk", strconv.FormatBool(bulk))
+	if delete {
+		q.Set("delete", "true")
+	}
+	if note > 0 {
+		q.Set("note", strconv.Itoa(note))
+	}
+	u.RawQuery = q.Encode()
+
+	resp, err := bs.do(method, u)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	episode := &episodeItem{}
+	err = bs.decode(episode, resp, usedAPI, u.RawQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	return episode.Episode, nil
+}
+
 // EpisodeScraper returns an episode from a file name
 func (bs *BetaSeries) EpisodeScraper(fileName string) (*Episode, error) {
 	usedAPI := "/episodes/scraper"
@@ -201,8 +235,11 @@ func (bs *BetaSeries) EpisodeNotDownloaded(bsID, theTvdbID int) (*Episode, error
 }
 
 // EpisodeWatched marks the episode with the given id as watched.
-func (bs *BetaSeries) EpisodeWatched(bsID, theTvdbID int) (*Episode, error) {
-	return bs.episodeUpdate("POST", "watched", bsID, theTvdbID)
+// 'note' is optional (unset if equal to 0)
+// If bulk is true, all previous episodes are marked as watched.
+// If delete is true, latest episodes are not marked as watched.
+func (bs *BetaSeries) EpisodeWatched(bsID, theTvdbID, note int, bulk, delete bool) (*Episode, error) {
+	return bs.episodeUpdateWatched(bsID, theTvdbID, note, bulk, delete)
 }
 
 // EpisodeNotWatched marks the episode with the given id as not watched.
