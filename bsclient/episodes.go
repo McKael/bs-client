@@ -92,9 +92,7 @@ func (bs *BetaSeries) episodeGet(endPoint string, id, theTvdbID int,
 		}
 	} else if id > 0 {
 		q.Set("id", strconv.Itoa(id))
-	}
-
-	if theTvdbID > 0 {
+	} else if theTvdbID > 0 {
 		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
 	}
 
@@ -126,7 +124,12 @@ func (bs *BetaSeries) episodeUpdate(method, endpoint string, id, theTvdbID int) 
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	q.Set("id", strconv.Itoa(id))
+
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
+	} else if theTvdbID > 0 {
+		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
+	}
 	u.RawQuery = q.Encode()
 
 	resp, err := bs.do(method, u)
@@ -152,12 +155,20 @@ func (bs *BetaSeries) episodeUpdateWatched(id, theTvdbID, note int, bulk, delete
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	q.Set("id", strconv.Itoa(id))
-	// Note: bulk not optional here since it defaults to true upstream
-	q.Set("bulk", strconv.FormatBool(bulk))
-	if delete {
-		q.Set("delete", "true")
+
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
+	} else if theTvdbID > 0 {
+		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
 	}
+
+	//if endPoint == "watched" {
+		// Note: bulk not optional here since it defaults to true upstream
+		q.Set("bulk", strconv.FormatBool(bulk))
+		if delete {
+			q.Set("delete", "true")
+		}
+	//}
 	if note > 0 {
 		q.Set("note", strconv.Itoa(note))
 	}
