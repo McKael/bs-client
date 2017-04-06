@@ -147,9 +147,9 @@ func (bs *BetaSeries) episodeUpdate(method, endpoint string, id, theTvdbID int) 
 	return episode.Episode, nil
 }
 
-func (bs *BetaSeries) episodeUpdateWatched(id, theTvdbID, note int, bulk, delete bool) (*Episode, error) {
+func (bs *BetaSeries) episodeUpdateEpisode(endPoint string, id, theTvdbID, note int, bulk, delete bool) (*Episode, error) {
 	method := "POST"
-	usedAPI := "/episodes/watched"
+	usedAPI := "/episodes/" + endPoint
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
 		return nil, errURLParsing
@@ -162,13 +162,13 @@ func (bs *BetaSeries) episodeUpdateWatched(id, theTvdbID, note int, bulk, delete
 		q.Set("thetvdb_id", strconv.Itoa(theTvdbID))
 	}
 
-	//if endPoint == "watched" {
+	if endPoint == "watched" {
 		// Note: bulk not optional here since it defaults to true upstream
 		q.Set("bulk", strconv.FormatBool(bulk))
 		if delete {
 			q.Set("delete", "true")
 		}
-	//}
+	}
 	if note > 0 {
 		q.Set("note", strconv.Itoa(note))
 	}
@@ -250,10 +250,23 @@ func (bs *BetaSeries) EpisodeNotDownloaded(bsID, theTvdbID int) (*Episode, error
 // If bulk is true, all previous episodes are marked as watched.
 // If delete is true, latest episodes are not marked as watched.
 func (bs *BetaSeries) EpisodeWatched(bsID, theTvdbID, note int, bulk, delete bool) (*Episode, error) {
-	return bs.episodeUpdateWatched(bsID, theTvdbID, note, bulk, delete)
+	return bs.episodeUpdateEpisode("watched", bsID, theTvdbID, note, bulk, delete)
 }
 
 // EpisodeNotWatched marks the episode with the given id as not watched.
 func (bs *BetaSeries) EpisodeNotWatched(bsID, theTvdbID int) (*Episode, error) {
 	return bs.episodeUpdate("DELETE", "watched", bsID, theTvdbID)
+}
+
+// EpisodeNote sets the note (rating) for the given episode.
+func (bs *BetaSeries) EpisodeNote(bsID, theTvdbID, note int) (*Episode, error) {
+	if note < 1 || note > 5 {
+		return nil, errInvalidNote
+	}
+	return bs.episodeUpdateEpisode("note", bsID, theTvdbID, note, false, false)
+}
+
+// EpisodeNoteRemove deletes the current note for the given episode.
+func (bs *BetaSeries) EpisodeNoteRemove(bsID, theTvdbID int) (*Episode, error) {
+	return bs.episodeUpdate("DELETE", "note", bsID, theTvdbID)
 }

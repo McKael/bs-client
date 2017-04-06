@@ -13,6 +13,7 @@ var (
 	errNoVideosFound     = errors.New("no videos found")
 	errNoSingleIDUsed    = errors.New("no single id used")
 	errIDNotProperlySet  = errors.New("id not properly set")
+	errInvalidNote       = errors.New("invalid note")
 )
 
 type seasonDetails struct {
@@ -200,6 +201,16 @@ func (bs *BetaSeries) ShowsFavorites(userID int) ([]Show, error) {
 	return bs.doGetShows(u, usedAPI)
 }
 
+// ShowFavorite sets the show 'id' as favorite.
+func (bs *BetaSeries) ShowFavorite(id int) (*Show, error) {
+	return bs.showUpdate("POST", "favorite", id, 0, "", 0)
+}
+
+// ShowFavoriteRemove remove the show 'id' from the favorites.
+func (bs *BetaSeries) ShowFavoriteRemove(id int) (*Show, error) {
+	return bs.showUpdate("DELETE", "favorite", id, 0, "", 0)
+}
+
 // ShowsSimilars returns a slice of shows similar to a given show
 func (bs *BetaSeries) ShowsSimilars(id, theTvdbID int, details bool) ([]Similar, error) {
 	usedAPI := "/shows/similars"
@@ -310,8 +321,8 @@ func (bs *BetaSeries) ShowsList(since, starting, order string, start, limit int)
 	return bs.doGetShows(u, usedAPI)
 }
 
-func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int, imdbID string) (*Show, error) {
-	usedAPI := "/shows/" + endoint
+func (bs *BetaSeries) showUpdate(method, endPoint string, id, theTvdbID int, imdbID string, option int) (*Show, error) {
+	usedAPI := "/shows/" + endPoint
 	u, err := url.Parse(bs.baseURL + usedAPI)
 	if err != nil {
 		return nil, errURLParsing
@@ -325,6 +336,14 @@ func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int, imdb
 		q.Set("imdb_id", imdbID)
 	} else {
 		return nil, errIDNotProperlySet
+	}
+	if option > 0 {
+		switch endPoint {
+		case "note":
+			q.Set("note", strconv.Itoa(option))
+		case "show":
+			q.Set("episode_id", strconv.Itoa(option))
+		}
 	}
 	u.RawQuery = q.Encode()
 
@@ -345,27 +364,29 @@ func (bs *BetaSeries) showUpdate(method, endoint string, id, theTvdbID int, imdb
 
 // ShowDisplay returns the show information represented by the given 'id' from the user's account.
 func (bs *BetaSeries) ShowDisplay(id, theTvdbID int, imdbID string) (*Show, error) {
-	return bs.showUpdate("GET", "display", id, theTvdbID, imdbID)
+	return bs.showUpdate("GET", "display", id, theTvdbID, imdbID, 0)
 }
 
-// ShowAdd adds the show represented by the given 'id' to the user's account.
-func (bs *BetaSeries) ShowAdd(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("POST", "show", id, theTvdbID, "")
+// ShowAdd adds the show represented by the given id to the user's account.
+// The last episode watched can be provided; if is it, all episodes until this
+// one should be marked as watched.
+func (bs *BetaSeries) ShowAdd(id, theTvdbID int, imdbID string, lastEpisodeID int) (*Show, error) {
+	return bs.showUpdate("POST", "show", id, theTvdbID, imdbID, lastEpisodeID)
 }
 
-// ShowRemove removes the show represented by the given 'id' from user's account.
-func (bs *BetaSeries) ShowRemove(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("DELETE", "show", id, theTvdbID, "")
+// ShowRemove removes the show represented by the given id from user's account.
+func (bs *BetaSeries) ShowRemove(id, theTvdbID int, imdbID string) (*Show, error) {
+	return bs.showUpdate("DELETE", "show", id, theTvdbID, imdbID, 0)
 }
 
-// ShowArchive archives the show represented by the given 'id' from user's account
+// ShowArchive archives the show represented by the given id from user's account
 func (bs *BetaSeries) ShowArchive(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("POST", "archive", id, theTvdbID, "")
+	return bs.showUpdate("POST", "archive", id, theTvdbID, "", 0)
 }
 
-// ShowNotArchive removes from archives the show represented by the given 'id' from user's account
+// ShowNotArchive removes from archives the show represented by the given id from user's account
 func (bs *BetaSeries) ShowNotArchive(id, theTvdbID int) (*Show, error) {
-	return bs.showUpdate("DELETE", "archive", id, theTvdbID, "")
+	return bs.showUpdate("DELETE", "archive", id, theTvdbID, "", 0)
 }
 
 // Video represents the video data returned by the betaserie API
@@ -488,4 +509,17 @@ func (bs *BetaSeries) EpisodesList(showID, theTvdbID int, imdbID string,
 	u.RawQuery = q.Encode()
 
 	return bs.doGetShows(u, usedAPI)
+}
+
+// ShowNote sets the note (rating) for the given show.
+func (bs *BetaSeries) ShowNote(bsID, theTvdbID, note int) (*Show, error) {
+	if note < 1 || note > 5 {
+		return nil, errInvalidNote
+	}
+	return bs.showUpdate("POST", "note", bsID, theTvdbID, "", note)
+}
+
+// ShowNoteRemove deletes the current note for the given show.
+func (bs *BetaSeries) ShowNoteRemove(bsID, theTvdbID int) (*Show, error) {
+	return bs.showUpdate("DELETE", "note", bsID, theTvdbID, "", 0)
 }
