@@ -463,8 +463,12 @@ func (bs *BetaSeries) ShowsEpisodes(id, theTvdbID, season, episode int, subtitle
 	} else {
 		return nil, errIDNotProperlySet
 	}
-	q.Set("season", strconv.Itoa(season))
-	q.Set("episode", strconv.Itoa(episode))
+	if season > 0 {
+		q.Set("season", strconv.Itoa(season))
+		if episode > 0 {
+			q.Set("episode", strconv.Itoa(episode))
+		}
+	}
 	if subtitles {
 		q.Set("subtitles", "true")
 	}
