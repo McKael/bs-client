@@ -129,7 +129,8 @@ func (bs *BetaSeries) MembersSearch(login string, limit int) ([]Member, error) {
 	return bs.doGetUsers(u, usedAPI)
 }
 
-// MembersInfos returns member information about the given user
+// MembersInfos returns member information about the given user (or the
+// authenticated user if id is not set).
 // If summary is true, no data about movies and shows is returns.
 // If summary is false, only can optionally be set to 'movies' or 'shows'.
 func (bs *BetaSeries) MembersInfos(id int, summary bool, only string) (*Member, error) {
@@ -139,10 +140,10 @@ func (bs *BetaSeries) MembersInfos(id int, summary bool, only string) (*Member, 
 		return nil, errURLParsing
 	}
 	q := u.Query()
-	if id < 1 {
-		return nil, errIDNotProperlySet
+	if id > 0 {
+		q.Set("id", strconv.Itoa(id))
 	}
-	q.Set("id", strconv.Itoa(id))
+
 	if summary {
 		q.Set("summary", "true")
 	} else if only != "" {
