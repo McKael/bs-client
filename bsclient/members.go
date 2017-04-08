@@ -13,6 +13,7 @@ var (
 // Member represents the member data returned by the betaserie 'members' API
 type Member struct {
 	ID     int    `json:"id"`
+	FbID   int    `json:"fb_id"`
 	Login  string `json:"login"`
 	XP     int    `json:"xp"`
 	Cached int    `json:"cached"`
@@ -27,7 +28,7 @@ type Member struct {
 		Comments           int     `json:"comments"`
 		Progress           float64 `json:"progress"`
 		EpisodesToWatch    int     `json:"episodes_to_watch"`
-		TimeOnTv           int     `json:"time_on_tv"`
+		TimeOnTV           int     `json:"time_on_tv"`
 		TimeToSpend        int     `json:"time_to_spend"`
 		Movies             int     `json:"movies"`
 		Badges             int     `json:"badges"`
@@ -42,7 +43,9 @@ type Member struct {
 		WrittenWords       int     `json:"written_words"`
 		WithoutDays        int     `json:"without_days"`
 	} `json:"stats"`
-	Options *struct {
+	Favorites []Show `json:"favorites"`
+	Shows     []Show `json:"shows"`
+	Options   *struct {
 		Downloaded bool `json:"downloaded"`
 		Notation   bool `json:"notation"`
 		Timelag    bool `json:"timelag"`
