@@ -58,12 +58,12 @@ type Show struct {
 	} `json:"images"`
 	Aliases []string `json:"aliases"`
 	User    struct {
-		Archived  bool   `json:"archived"`
-		Favorited bool   `json:"favorited"`
-		Remaining int    `json:"remaining"`
-		Status    string `json:"status"`
-		Last      string `json:"last"`
-		Tags      string `json:"tags"`
+		Archived  bool    `json:"archived"`
+		Favorited bool    `json:"favorited"`
+		Remaining int     `json:"remaining"`
+		Status    float64 `json:"status"`
+		Last      string  `json:"last"`
+		Tags      string  `json:"tags"`
 	} `json:"user"`
 	ResourceURL string `json:"resource_url"`
 	// specific to episodes/... API endpoints
